@@ -1,0 +1,65 @@
+import random
+import plotly.graph_objects as go
+from scipy.spatial import ConvexHull
+
+#tetrahedron, random points in space
+hull_points = [
+    [0, 0, 0],
+    [1, 0, 0],
+    [1, 1, 1],
+    [0, 1, 0]
+]
+
+num_points = 500
+X = []
+Y = []
+Z = []
+
+#generate random points
+for i in range(num_points):
+
+    weights = []
+    total = 0
+    for j in range(len(hull_points)):
+        w = random.random()
+        weights.append(w)
+        total += w
+    #weights
+    for j in range(len(weights)):
+        weights[j] /= total
+
+    x = 0
+    y = 0
+    z = 0
+    for j in range(len(hull_points)):
+        x += weights[j] * hull_points[j][0]
+        y += weights[j] * hull_points[j][1]
+        z += weights[j] * hull_points[j][2]
+
+    X.append(x)
+    Y.append(y)
+    Z.append(z)
+
+#convex hull & plotting
+hull = ConvexHull(hull_points)
+scatter = go.Scatter3d(
+    x=X, y=Y, z=Z,
+    mode='markers',
+    marker=dict(size=2, opacity=1, color='blue')
+)
+
+#making a visual mesh for the hull, better look for points in space
+mesh = go.Mesh3d(
+    x=[p[0] for p in hull_points],
+    y=[p[1] for p in hull_points],
+    z=[p[2] for p in hull_points],
+    i=[simplex[0] for simplex in hull.simplices],
+    j=[simplex[1] for simplex in hull.simplices],
+    k=[simplex[2] for simplex in hull.simplices],
+    color='lightgrey', opacity=0.4
+)
+layout = go.Layout(
+    margin=dict(l=0, r=0, b=0, t=0)
+)
+fig = go.Figure(data=[mesh, scatter], layout=layout)
+fig.show()
